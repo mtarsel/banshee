@@ -14,12 +14,16 @@ class CLI(cmd.Cmd):
         print "hello again", arg, "!"
 
     def do_ip(self, arg):
-	"""Gets local IP address"""
+	"""Gets local IP address.
+	    Takes no arguements."""
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	s.connect(('8.8.8.8', 80))
 	ip = (s.getsockname()[0])
 	print ip
 	s.close()
+
+    def do_dns(self, arg):
+	"""DNS Poisioning."""	
     
     def help_hello(self):
         print "syntax: hello [message]",
@@ -37,6 +41,8 @@ class CLI(cmd.Cmd):
 
 #
 # try it out
+if os.geteuid() != 0:
+    sys.exit("[!] Please run as root")
 
 cli = CLI()
 cli.cmdloop()

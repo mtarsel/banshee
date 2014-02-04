@@ -18,3 +18,4 @@ Linux, Python, Scapy Libraries
 
 ###Installation
 just run it
+apt-get install python-nfqueue
