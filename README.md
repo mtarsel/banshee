@@ -20,6 +20,6 @@ Linux, Python, Scapy Libraries
 apt-get install python-nfqueue
 
 
-```python
+```bash
 sudo python ericthered.py 
 ```
