@@ -1,4 +1,4 @@
-theviking
+banshee.py
 =========
 
 Set of security scripts to run on a Local Area Network. Features currently
