@@ -21,5 +21,5 @@ apt-get install python-nfqueue
 
 
 ```bash
-sudo python ericthered.py 
+sudo python banshee.py 
 ```
