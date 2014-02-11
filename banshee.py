@@ -5,11 +5,7 @@ import string, sys
 from scapy.all import *
 
 #https://pypi.python.org/pypi/netaddr/ TODO
-#targetip = ""
-#port =""
 
-'''TODO : cant get ip address. follow example 
-'''
 class sendSYN(threading.Thread):
         def __init__(self, targetip, port):
                 threading.Thread.__init__(self)
