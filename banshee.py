@@ -7,8 +7,12 @@ from scapy.all import *
 import nmap   
 import time
 
+#Long term:
+#   1. ARP or MITM working
+#   2. put in virtualenv, test with different python versions, make requirements.txt
+
 #https://pypi.python.org/pypi/netaddr/ TODO
-#PACKAGES INCLUDE cmd2, python-nmap, nfeque, scapy TODO
+#PACKAGES INCLUDE list cmd2, python-nmap, nfeque, scapy TODO
 
 clientsList = [ ]
 global myip
@@ -56,7 +60,7 @@ class Arp():
         sys.exit("losing...")    
 
     def signal_handler(signal, frame):
-        with ipf as open('/proc/sys/net/ipv4/ip_forward', 'w'):
+        with ipf as open('/proc/sys/net/ipv4/ip_forward', 'w'):#TODO compile error
             ipf.write('0\n')#disable IP forwarding
         restore(routerIP, victimIP, routerMAC, victimMAC)
         
@@ -115,6 +119,9 @@ class CLI(cmd.Cmd):
 	"""Takes no arguments.
 	    Prints list of clientsList and MAC and IP addresses
 	    on LAN"""
+	#TODO use set to eliminate duplicates
+	#TODO split entires in the list by ip and mac
+	    # check if ip address is our ip and display some kinda flag so user knows
 	print "Length of clientsList: ", len(clientsList)
 	for x in clientsList:
 	    print x
@@ -154,7 +161,19 @@ class CLI(cmd.Cmd):
 	    for x in range(count):
 		ans = sr1(packet)
 		#ans.show()
-
+#TODO clean up display. Here might be how...
+# set target ip and icmp-data
+#ip_target = "192.168.2.200"
+#data = "Space for Rent!"
+# define ip and icmp
+#ip = IP()
+#icmp = ICMP()
+# creat ip + icmp parameters
+#ip.dst = ip_target
+#icmp.type = 8
+#icmp.code = 0
+#a = sr1(ip/icmp/data)
+#a.summary()
 
     def do_arp(self, arg):
 	"""arp [routerIP] [victimIP] [routerMAC] [victimMAC]"""
