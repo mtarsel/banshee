@@ -10,6 +10,20 @@ import nmap
 #PACKAGES INCLUDE cmd2, python-nmap, nfeque, scapy TODO
 
 clientsList = [ ]
+global myip
+
+yes = set(['yes','y', 'ye', 'Y','YE','YES','yea', 'yeah', 'oui', ''])
+no = set(['no','n', 'No', 'NO', 'non', 'nah'])
+
+
+#choice = raw_input().lower()
+def yesorno(choice):
+    if choice in yes:
+	return True
+    elif choice in no:
+	return False
+    else:
+	sys.stdout.write("Please respond with 'yes' or 'no'")
 
 class sendSYN(threading.Thread):
         def __init__(self, targetip, port):
@@ -36,8 +50,8 @@ def arp_monitor_callback(pkt):
 	#print "In arp_monitor_callback, clients:", clients
 	clients = clientsList.append(clients)
 	for clients in clientsList:
-	    print "FOR: Length of clientsList:", len(clientsList)
-	    print "FOR In arp_monitor_callback, clients:", clients
+	    print "client: ", clients
+	    print "\nTotal clients: ", len(clientsList)
 	#return pkt.sprintf("%ARP.hwsrc% %ARP.psrc%")
 
  
@@ -47,7 +61,24 @@ class CLI(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self.prompt = '> '
 
-
+    def do_netiface(self, arg):
+	"""Takes no arguments	
+	    View and/or change your Network Interface Card"""
+	
+	print "Current: ", conf.iface
+	print "\nChange it? "
+	choice = raw_input().lower()
+		
+	if yesorno(choice) is True:
+	    conf.iface = raw_input("Enter network interface: ")  
+	 
+    def do_ip(self, arg):
+	"""Takes no arguments
+	Gets your IP address"""
+	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	s.connect(('8.8.8.8', 80))
+	myip = (s.getsockname()[0])
+	print "Your ip: ", myip
 
     def do_clientlist(self, arg):
 	"""Takes no arguments.
@@ -58,28 +89,38 @@ class CLI(cmd.Cmd):
 	    print x
 
     def do_clients(self, arg):
-	""" clients 
+	""" Takes no arguments 
 	View clients connected to router
 	clients """
 
-	#Ping scan network as background job
-	#if we get a reply:
-	#   add ip addr to list of hosts
-
 	#Same command as: nmap -sP 192.168.1.1/24
-	
-
+	#TODO make background job and quit after certain amount of time
+	#   or if ip address/MAC is the same in clientsList
+	print "Pinging clients... \n"
 	sniff(prn=arp_monitor_callback, filter="arp", store=0)  
-
-	#For user input
-#	iplist = arg.split(" ")
-#	routerip = iplist[0]	
-#	iprange = int(iplist[1])	
-
-#http://pastebin.com/xHZZ6Km2
-#http://pythonicprose.blogspot.com/2009/07/python-ping-one-or-many-addresses-at.html
-#https://pypi.python.org/pypi/python-nmap
     
+    def do_ping(self, arg):
+	"""ping [host IP address] [count] 
+	    Pings IP address"""
+	if not(arg):
+	    print "No ip entered"
+	else:
+	    print "\nPinging... ",arg,"\n"
+#	    pinglist = arg.split(" ")
+#	    print"\n pinglist: ", pinglist
+#	    host = pinglist[0]	
+#	    if len(pinglist) > 1 :
+#		count = int(pinglist[1])	
+	    
+	   # print"\n pinglist length: ",len(pinglist)
+	    host = arg
+	    count = 1
+	    packet = IP(dst=host)/ICMP()
+	    for x in range(count):
+		ans = sr1(packet)
+		#ans.show()
+
+
     def do_arp(self, arg):
 	"""arp [routerIP] [victimIP] [routerMAC] [victimMAC]"""
 
@@ -88,16 +129,6 @@ class CLI(cmd.Cmd):
 #	    poison(routerIP, victimIP, routerMAC, victimMAC)
 #	    time.sleep(1.5)
 	
-	
-    def do_ip(self, arg):
-	"""Gets local IP address.
-	    Takes no arguements."""
-	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	s.connect(('8.8.8.8', 80))
-	ip = (s.getsockname()[0])
-	print ip
-	s.close()
-
     def do_dns(self, arg):
 	"""DNS Poisioning."""	
     
@@ -115,7 +146,6 @@ class CLI(cmd.Cmd):
 	    """
 	if not(arg):
 	    print "No ip entered"
-    
 	else:
 
 	    print "\n",arg,"\n"
@@ -145,6 +175,9 @@ class CLI(cmd.Cmd):
     do_q = do_quit
     do_c = do_clients
     do_cl = do_clientlist
+    do_net = do_netiface
+    do_neti = do_netiface
+    do_p = do_ping
 
 if __name__ == '__main__':
 
@@ -155,6 +188,17 @@ if __name__ == '__main__':
    
 #    print "Please enter network interface:"
     conf.iface = raw_input("Enter network interface: ")  
+
+    #hackish - ping Google and get our IP
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(('8.8.8.8', 80))
+    myip = (s.getsockname()[0])
+    print "\n Your network interface: ", conf.iface
+    print "\n Your IP address: ", myip
+    s.close()
+
+    print"\n Type 'help' \n"
 #    conf.iface='lo';#network card XD
     cli = CLI()
     cli.cmdloop()
