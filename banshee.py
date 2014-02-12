@@ -170,7 +170,16 @@ class CLI(cmd.Cmd):
 	    a.summary()
 
     def do_arp(self, arg):
-	"""arp [routerIP] [victimIP] [routerMAC] [victimMAC]"""
+	"""arp [routerIP] [victimIP] [routerMAC] [victimMAC]
+	    #########################################
+	    # 
+	    # ARP Poison - A multithreaded SYN Flooder
+	    # author: Dan McInerney
+	    #
+	    #########################################
+
+	    http://danmcinerney.org/arp-poisoning-with-python-2/
+"""
 	
 	arplist = arg.split(" ")
     
@@ -211,7 +220,6 @@ class CLI(cmd.Cmd):
     # 
     # SYNflood - A multithreaded SYN Flooder
     # author: arthurnn
-    #
     #
     #########################################
 
