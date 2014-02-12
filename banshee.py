@@ -6,6 +6,8 @@ import string, sys
 from scapy.all import *
 import nmap   
 import time
+from subprocess import call
+
 
 #Long term:
 #   1. ARP or MITM working
@@ -140,7 +142,12 @@ class CLI(cmd.Cmd):
 	sniff(prn=arp_monitor_callback, filter="arp", store=0)  
 	
 	
-    
+    def do_router(self, arg):
+	"""Takes no arguments.
+	    Executes arp -a 
+	    Should be address of router"""
+	call(["arp", "-a"]) 	    
+
     def do_ping(self, arg):
 	"""ping [host IP address] [count] 
 	    Pings IP address"""
@@ -213,13 +220,16 @@ class CLI(cmd.Cmd):
 	    print "Flooding %s:%i with SYN packets." % (targetlist[0], port)
 	
 	    total = 0
-	    conf.iface='lo';#network card XD
- 
+
 	    while 1:
-		syner = sendSYN(targetip, port)
-		syner.start()
-		total += 1
-		sys.stdout.write("\rTotal packets sent:\t\t\t%i" % total)
+		try:
+		    syner = sendSYN(targetip, port)
+		    syner.start()
+		    total += 1
+		    sys.stdout.write("\rTotal packets sent:\t\t\t%i" % total)
+		except KeyboardInterrupt:
+		    print "\n"
+		    break
 	
 
     def do_quit(self, arg):
@@ -236,6 +246,7 @@ class CLI(cmd.Cmd):
     do_net = do_netiface
     do_neti = do_netiface
     do_p = do_ping
+    do_r = do_router
 
 if __name__ == '__main__':
 
@@ -243,9 +254,12 @@ if __name__ == '__main__':
 
     if os.geteuid() != 0:
         sys.exit("[!] Please run as root")
-   
+
+      
+    call(["ip", "address"])#TODO use pip package netifaces?? 
+ 
 #    print "Please enter network interface:"
-    conf.iface = raw_input("Enter network interface: ")  
+    conf.iface = raw_input("\nEnter network interface: ")  
 
     #hackish - ping Google and get our IP
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -257,7 +271,6 @@ if __name__ == '__main__':
     s.close()
 
     print"\n Type 'help' \n"
-#    conf.iface='lo';#network card XD
     cli = CLI()
     cli.cmdloop() 
 
