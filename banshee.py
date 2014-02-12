@@ -281,4 +281,3 @@ if __name__ == '__main__':
     print"\n Type 'help' \n"
     cli = CLI()
     cli.cmdloop() 
-
