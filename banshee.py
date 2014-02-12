@@ -152,6 +152,7 @@ class CLI(cmd.Cmd):
 	    Should be address of router"""
 	call(["arp", "-a"]) 	    
 
+
     def do_ping(self, arg):
 	"""ping [host IP address] [count] 
 	    Pings IP address"""
@@ -169,6 +170,20 @@ class CLI(cmd.Cmd):
 	    a = sr1(ip/icmp/data)
 	    a.summary()
 
+
+    def do_kick(self, arg):
+	"""kick 
+	    #########################################
+	    #
+	    # Kick everyone off wifi with DeAuth packets
+	    # author: Dan McInerney
+	    #
+	    #########################################
+
+	    http://danmcinerney.org/how-to-kick-everyone-around-you-off-wifi-with-python/"""
+
+
+
     def do_arp(self, arg):
 	"""arp [routerIP] [victimIP] [routerMAC] [victimMAC]
 	    #########################################
@@ -178,8 +193,7 @@ class CLI(cmd.Cmd):
 	    #
 	    #########################################
 
-	    http://danmcinerney.org/arp-poisoning-with-python-2/
-"""
+	    http://danmcinerney.org/arp-poisoning-with-python-2/ """
 	
 	arplist = arg.split(" ")
     
