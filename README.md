@@ -22,6 +22,8 @@ Tested with Python 2.7
 ```bash
 apt-get install python-nfqueue
 
+pip install netaddr
+
 pip install python-nmap
 
 wget http://hg.secdev.org/scapy/raw-file/v1.2.0.2/scapy.py
