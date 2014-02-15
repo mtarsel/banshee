@@ -235,7 +235,6 @@ class CLI(cmd.Cmd):
 	"""DNS Poisioning."""	
 	
 	
-    
     def do_syn(self, arg):
 	"""syn [target ip] [port]
     #########################################
@@ -293,7 +292,8 @@ if __name__ == '__main__':
 
     if os.geteuid() != 0:
         sys.exit("[!] Please run as root")
-
+    
+#    os.spawnl(os.P_DETACH, sniff(prn=arp_monitor_callback, filter="arp",store=0))
       
     call(["ip", "address"])#TODO use pip package netifaces?? 
  
