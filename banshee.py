@@ -10,6 +10,51 @@
 #
 ######################################
 
+
+'''
+1. Find all routers 
+2. Search all clients on router and obtain IP Address and MAC Address
+3. ARP Poison victimIP Address from routerIP Address
+4. Redirect all traffic to different domain using DNS queriers and redirection
+
+SummRY:
+Redirect all clients on LAN to specific IP ddress,
+Use  NTP as amplification??
+
+psuedocode:
+
+for IPAddress.clientList(): #PARSE IP and MAC Address
+    poision(vicimtIP->IP.clientLiast())
+    redirect.from(IP.clientList())
+    redirect.to(targetIP)
+    amplify()
+
+def amplify():
+    all clients send DNS query 
+        or 
+            all clients use NTP server to send more traffic
+
+NOTES:
+-whilenpoisioning, save all traffic to parse later 
+    -grab cookies??
+
+-save traffic, backdoor to infect later?
+-output clientList to .txt file :)
+
+
+more pseduocode:
+    
+1. enter network interface card
+2. get router hosename, IP, MAC, type 'router'
+3. ping all clients connect to router, type 'c'
+4. view clientList, export to txt, pdf?, type 'cl'
+5. posion all clients in clientsList, 'type poison with parameters'
+6. redirect all traffic to different IP address
+    7. all while saving all traffic from client for intended server
+
+
+'''
+
 import socket, random, sys, threading
 import cmd
 import logging
