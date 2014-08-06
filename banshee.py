@@ -88,11 +88,26 @@ def arp_monitor_callback(pkt):
 	clients = pkt.sprintf("%ARP.hwsrc% %ARP.psrc%")
 	#print "In arp_monitor_callback, clients:", clients
 	clients = clientsList.append(clients)
-	for clients in clientsList:
-	    print "client: ", clients
-	    print "\nTotal clients: ", len(clientsList)
+	sortedclientsList = sorted(set(clientsList))
+	#for clients in clientsList:
+	#    print "client: ", clients
+	#    print "\nTotal clients: ", len(clientsList)
 	#return pkt.sprintf("%ARP.hwsrc% %ARP.psrc%")
 	
+	print "Number of clients: ", len(sortedclientsList)
+	file = open("client-list.txt", "w")
+	for x in sortedclientsList:
+	    #18 to end should be ip
+	    parsedIP = x[18:]
+	    if(parsedIP == myip):
+		print (x + " (YOUR IP) \n")
+		file.write(x + " (YOUR IP) \n")
+	    else:
+		print  x
+		file.write(x + "\n")
+	print "\nUpdated client list in client-list.txt\n"
+	file.close()
+	 
 	
 class Arp:
 #    def __init__(self, victim 
@@ -155,11 +170,12 @@ class CLI(cmd.Cmd):
 	"""Takes no arguments	
 	    View and/or change your Network Interface Card"""
 	
-	print "Current: ", conf.iface
-	print "\nChange it? "
+	print "\nChange it? [y/n]"
 	choice = raw_input().lower()
 		
 	if yesorno(choice) is True:
+	    call(["ip", "address"])#TODO use pip package netifaces?? 
+	    print "\nCurrent: ", conf.iface
 	    conf.iface = raw_input("Enter network interface: ")  
 	    
 	    
@@ -182,10 +198,13 @@ class CLI(cmd.Cmd):
 	    # check if ip address is our ip and display some kinda flag so user knows
 	sortedclientsList = sorted(set(clientsList))
 	print "Number of clients: ", len(sortedclientsList)
+	#file = open("client-list.txt", "w")
 	for x in sortedclientsList:
 	    print "\n", x
-	    
-	    
+	#    file.write(x + "\n")
+#	print "Outputting list to client-list.txt"
+#	file.close()
+	 
 
     def do_clients(self, arg):
 	""" Takes no arguments 
@@ -197,6 +216,8 @@ class CLI(cmd.Cmd):
 	#   or if ip address/MAC is the same in clientsList
 	print "Pinging clients... \n"
 	sniff(prn=arp_monitor_callback, filter="arp", store=0)  
+    
+	
 	
 	
     def do_router(self, arg):
@@ -214,15 +235,11 @@ class CLI(cmd.Cmd):
 	else:
 	    print "\nPinging... ",arg,"\n"
 	    pingIP = str(IPAddress(arg))
-	    data = "Space for Rent!"
-	    ip = IP()
-	    icmp = ICMP()
-	    ip.dst = pingIP
-	    icmp.type = 8
-	    icmp.code = 0
-	    a = sr1(ip/icmp/data)
-	    a.summary()
-
+	    if(pingIP == myip):
+		print "\n That is your IP address dude. \n"
+	    else:
+		pingr = IP(dst=pingIP)/ICMP()
+		sr1(pingr)
 
     def do_kick(self, arg):
 	"""kick 
@@ -241,7 +258,7 @@ class CLI(cmd.Cmd):
 	"""arp [routerIP] [victimIP] [routerMAC] [victimMAC]
 	    #########################################
 	    # 
-	    # ARP Poison - A multithreaded SYN Flooder
+	    # ARP Poison 
 	    # author: Dan McInerney
 	    #
 	    #########################################
