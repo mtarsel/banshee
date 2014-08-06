@@ -11,49 +11,33 @@
 ######################################
 
 
-'''
-1. Find all routers 
-2. Search all clients on router and obtain IP Address and MAC Address
-3. ARP Poison victimIP Address from routerIP Address
-4. Redirect all traffic to different domain using DNS queriers and redirection
 
-SummRY:
-Redirect all clients on LAN to specific IP ddress,
-Use  NTP as amplification??
+#1. Find all routers 
+#2. Search all clients on router and obtain IP Address and MAC Address
+#3. ARP Poison victimIP Address from routerIP Address
+#4. Redirect all traffic to different domain using DNS queriers and redirection
 
-psuedocode:
+#Redirect all clients on LAN to specific IP ddress,
+#Use  NTP as amplification??
 
-for IPAddress.clientList(): #PARSE IP and MAC Address
-    poision(vicimtIP->IP.clientLiast())
-    redirect.from(IP.clientList())
-    redirect.to(targetIP)
-    amplify()
+#psuedocode:
 
-def amplify():
-    all clients send DNS query 
-        or 
-            all clients use NTP server to send more traffic
+#for IPAddress.clientList(): #PARSE IP and MAC Address
+#    poision(vicimtIP->IP.clientLiast())
+#    redirect.from(IP.clientList())
+#    redirect.to(targetIP)
+#    amplify()
 
-NOTES:
--whilenpoisioning, save all traffic to parse later 
-    -grab cookies??
+#def amplify():
+#    all clients send DNS query 
+#        or 
+#            all clients use NTP server to send more traffic
 
--save traffic, backdoor to infect later?
--output clientList to .txt file :)
+#NOTES:
+#-whilenpoisioning, save all traffic to parse later 
+#    -grab cookies??
 
 
-more pseduocode:
-    
-1. enter network interface card
-2. get router hosename, IP, MAC, type 'router'
-3. ping all clients connect to router, type 'c'
-4. view clientList, export to txt, pdf?, type 'cl'
-5. posion all clients in clientsList, 'type poison with parameters'
-6. redirect all traffic to different IP address
-    7. all while saving all traffic from client for intended server
-
-
-'''
 
 import socket, random, sys, threading
 import cmd
@@ -86,13 +70,8 @@ def yesorno(choice):
 def arp_monitor_callback(pkt):
     if ARP in pkt and pkt[ARP].op in (1,2): #who-has or is-at   
 	clients = pkt.sprintf("%ARP.hwsrc% %ARP.psrc%")
-	#print "In arp_monitor_callback, clients:", clients
 	clients = clientsList.append(clients)
 	sortedclientsList = sorted(set(clientsList))
-	#for clients in clientsList:
-	#    print "client: ", clients
-	#    print "\nTotal clients: ", len(clientsList)
-	#return pkt.sprintf("%ARP.hwsrc% %ARP.psrc%")
 	
 	print "Number of clients: ", len(sortedclientsList)
 	file = open("client-list.txt", "w")
@@ -217,7 +196,6 @@ class CLI(cmd.Cmd):
 
 	#Same command as: nmap -sP 192.168.1.1/24
 	#TODO make background job and quit after certain amount of time
-	#   or if ip address/MAC is the same in clientsList
 	print "Pinging clients... \n"
 	sniff(prn=arp_monitor_callback, filter="arp", store=0)  
     
