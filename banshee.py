@@ -200,7 +200,11 @@ class CLI(cmd.Cmd):
 	print "Number of clients: ", len(sortedclientsList)
 	#file = open("client-list.txt", "w")
 	for x in sortedclientsList:
-	    print "\n", x
+	    parsedIP = x[18:]
+	    if(parsedIP == myip):
+		print "\n" + x + " YOUR IP"
+	    else:
+		print "\n", x
 	#    file.write(x + "\n")
 #	print "Outputting list to client-list.txt"
 #	file.close()
