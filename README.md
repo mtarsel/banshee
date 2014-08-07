@@ -37,7 +37,7 @@ or to get scapy version I used
 ```bash
 wget http://hg.secdev.org/scapy/raw-file/v1.2.0.2/scapy.py
 sudo python scapy.py
-``
+```
 To run it:
 ```bash
 sudo python banshee.py 
