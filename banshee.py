@@ -346,11 +346,11 @@ class CLI(cmd.Cmd):
 
 	    os.system('iptables -t nat -A PREROUTING -p udp --dport 53 -j NFQUEUE')   
  
-   ipf = open('/proc/sys/net/ipv4/ip_forward', 'r+')
-    ipf_read = ipf.read()
-    if ipf_read != '1\n':
-        ipf.write('1\n')
-    ipf.close()
+	    ipf = open('/proc/sys/net/ipv4/ip_forward', 'r+')
+	    ipf_read = ipf.read()
+	    if ipf_read != '1\n':
+		ipf.write('1\n')
+	    ipf.close()
 
 
 	    with open('/proc/sys/net/ipv4/ip_forward', 'w') as ipf:
@@ -381,7 +381,8 @@ class CLI(cmd.Cmd):
 		os.system('/sbin/iptables -t nat -F')
 	        os.system('/sbin/iptables -t nat -X')
 		sys.exit(0)
-	     signal.signal(signal.SIGINT, signal_handler)
+	
+	    signal.signal(signal.SIGINT, signal_handler)
 
 
 	    while 1:
