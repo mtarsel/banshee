@@ -113,6 +113,8 @@ def deny():
 #usng the ol' ntp amplification. shit should be patched but why not try?
 def amplify(targetIP, ntpServerFile):
     #https://github.com/vpnguy/ntpdos
+#by DaRkReD
+
 
     #128437 ntp servers in txt file
     numOfServers = 128437
