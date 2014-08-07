@@ -55,7 +55,7 @@ import getpass
 from twisted.internet import reactor
 from twisted.internet.interfaces import IReadDescriptor
 import os
-import nfqueue
+#import nfqueue
 import signal
 
 
